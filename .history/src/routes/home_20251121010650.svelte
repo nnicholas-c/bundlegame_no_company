@@ -1,6 +1,6 @@
 <script>
     import { get } from 'svelte/store';
-    import { game, orders, gameText, currLocation, logOrder, logBundledOrder, orderList, ordersShown, thinkTime } from "$lib/tutorial.js";
+    import { game, orders, gameText, currLocation, logOrder, logBundledOrder, orderList, ordersShown, thinkTime } from "$lib/bundle.js";
     import { queueNFixedOrders, getDistances } from "$lib/config.js";
     import Order from "./order.svelte";
     import { onMount, onDestroy } from "svelte";
@@ -116,7 +116,7 @@
     <p class="text-lg font-medium text-gray-700 my-4">Traveling to {travelingTo}. Travel duration: {duration}</p>
 {:else}
     {#if thinking}
-    <p class="text-blue-600 font-semibold my-4">You have {thinkRemaining}s to look through the available orders.</p>
+    <p class="text-blue-600 font-semibold my-4">Game timer stopped! Take {thinkTime} free seconds to look through the available orders</p>
     {/if}
     <div class="grid grid-cols-2 gap-4 mb-6">
         {#each $orderList as order, i (order.id)}
