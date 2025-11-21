@@ -244,27 +244,6 @@ export const logBundledOrder = (order1, order2, options) => {
 	addOrder(get(id), order2, order2.id)
 }
 
-// New function to handle 1-3 orders flexibly
-export const logOrders = (selectedOrders, allOptions) => {
-	if (!needsAuth) {
-		return
-	}
-	const startTime = get(elapsed)
-	const optionslst = allOptions.map(o => o.id)
-	
-	selectedOrders.forEach((order, idx) => {
-		order.startgametime = startTime
-		order.status = 0
-		order.bundled = selectedOrders.length > 1
-		order.bundleSize = selectedOrders.length
-		if (order.bundled) {
-			order.bundledWith = selectedOrders.filter((_, i) => i !== idx).map(o => o.id)
-		}
-		order.options = optionslst
-		addOrder(get(id), order, order.id)
-	})
-}
-
 //state should contain info such as:
 //whether the order was completed succesfully or not
 //how many tries it took, etc

@@ -81,8 +81,7 @@
             if (visitStore) {
                 gameWindow()
             } else {
-                // Clear selected orders but keep orderList intact for experiment
-                $orders = []
+                $orders.splice(0, 2)
                 distances = getDistances(city)
                 $gameText.selector = "None selected"
             }
@@ -91,8 +90,11 @@
 
     function gameWindow() {
         const selOrders = get(orders)
-        // Use new logOrders function that handles 1-3 orders
-        logOrders(selOrders, scenarioOrders)
+        if (get(game).bundled) {
+            logBundledOrder(selOrders[0], selOrders[1], selOrders)
+        } else {
+            logOrder(selOrders[0], selOrders)
+        }
         $game.inStore = true;
         $game.inSelect= false;
     }
@@ -105,12 +107,6 @@
     }
 
     onMount(() => {
-        // Set round start time for tracking
-        roundStartTime.set($elapsed);
-        
-        // Load scenario orders into orderList
-        orderList.set(scenarioOrders);
-        
         thinking = true;
         thinkRemaining = thinkTime;
 
@@ -154,7 +150,7 @@
 
         <div class="flex items-baseline justify-between">
             <h2 class="text-lg font-semibold text-slate-900">Available batches</h2>
-            <p class="text-xs text-slate-500">Round {$currentRound} • Select up to {maxBundle} {maxBundle === 1 ? 'order' : 'orders'}</p>
+            <p class="text-xs text-slate-500">Select one or two orders to work on</p>
         </div>
 
         <div class="mt-3 grid gap-4 md:grid-cols-2">

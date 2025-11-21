@@ -1,22 +1,9 @@
 <script>
     import { get } from 'svelte/store';
-    import { game, orders, gameText, currLocation, logOrder, logBundledOrder, logOrders, orderList, ordersShown, thinkTime, currentRound, getCurrentScenario, roundStartTime, elapsed } from "$lib/bundle.js";
+    import { game, orders, gameText, currLocation, logOrder, logBundledOrder, orderList, ordersShown, thinkTime } from "$lib/bundle.js";
     import { queueNFixedOrders, getDistances } from "$lib/config.js";
     import Order from "./order.svelte";
     import { onMount, onDestroy } from "svelte";
-
-    let waiting = false;
-    $: distances = getDistances($currLocation);
-    let duration = 0;
-    let travelingTo = ""
-    let thinking = false;
-    let thinkRemaining = thinkTime;
-    let thinkInterval;
-
-    // Experiment: Load orders from scenario
-    $: scenario = getCurrentScenario($currentRound);
-    $: maxBundle = scenario.max_bundle ?? 3;
-    $: scenarioOrders = scenario.orders;
 
     let waiting = false;
     $: distances = getDistances($currLocation);
@@ -30,34 +17,28 @@
         const selOrders = get(orders)
         const curGame = get(game)
         const curLoc = get(currLocation)
-        
         if (selOrders.length < 1) {
-            alert(`Please select 1 to ${maxBundle} orders!`)
+            alert("Please select 1 or 2 orders!")
             return;
         }
-        
-        if (selOrders.length > maxBundle) {
-            alert(`You can only select up to ${maxBundle} orders this round!`)
-            return;
-        }
-        
-        // Check all orders are from same store/city
         if (selOrders.length > 1) {
-            const firstStore = selOrders[0].store
-            const firstCity = selOrders[0].city
-            for (let order of selOrders) {
-                if (order.store !== firstStore || order.city !== firstCity) {
-                    alert("Cannot bundle orders from different stores/cities!")
-                    return;
-                }
+            if (selOrders[0].store != selOrders[1].store || selOrders[0].city != selOrders[1].city) {
+                alert("Cannot bundle different stores/cities!")
+                return;
             }
             curGame.bundled = true;
         } else {
             curGame.bundled = false;
         }
 
-        // For experiment mode, don't modify orderList - it's fixed per round
-        // Just proceed with the selected orders
+        const selOrderIds = selOrders.map(order => order["id"])
+        let temp = $orderList.filter(order => !selOrderIds.includes(order["id"]));
+        temp = temp.map(order => {
+            return { ...order, "expire": order["expire"] - 1 };
+        });
+        temp = temp.filter(order => order.expire > 0);
+        console.log(temp)
+        $orderList = [...temp, ...queueNFixedOrders(ordersShown-temp.length)]
 
         if (selOrders[0].city != curLoc) {
             travel(selOrders[0].city, true)
@@ -81,8 +62,7 @@
             if (visitStore) {
                 gameWindow()
             } else {
-                // Clear selected orders but keep orderList intact for experiment
-                $orders = []
+                $orders.splice(0, 2)
                 distances = getDistances(city)
                 $gameText.selector = "None selected"
             }
@@ -91,8 +71,11 @@
 
     function gameWindow() {
         const selOrders = get(orders)
-        // Use new logOrders function that handles 1-3 orders
-        logOrders(selOrders, scenarioOrders)
+        if (get(game).bundled) {
+            logBundledOrder(selOrders[0], selOrders[1], selOrders)
+        } else {
+            logOrder(selOrders[0], selOrders)
+        }
         $game.inStore = true;
         $game.inSelect= false;
     }
@@ -105,12 +88,6 @@
     }
 
     onMount(() => {
-        // Set round start time for tracking
-        roundStartTime.set($elapsed);
-        
-        // Load scenario orders into orderList
-        orderList.set(scenarioOrders);
-        
         thinking = true;
         thinkRemaining = thinkTime;
 
@@ -154,7 +131,7 @@
 
         <div class="flex items-baseline justify-between">
             <h2 class="text-lg font-semibold text-slate-900">Available batches</h2>
-            <p class="text-xs text-slate-500">Round {$currentRound} • Select up to {maxBundle} {maxBundle === 1 ? 'order' : 'orders'}</p>
+            <p class="text-xs text-slate-500">Select one or two orders to work on</p>
         </div>
 
         <div class="mt-3 grid gap-4 md:grid-cols-2">

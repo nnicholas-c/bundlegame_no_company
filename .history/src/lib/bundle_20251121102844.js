@@ -1,11 +1,11 @@
 import { writable, readable, derived, get} from 'svelte/store';
 import { addAction, addOrder, updateFields, updateOrder, authenticateUser, createUser, getCounter, incrementCounter } from './firebaseDB';
 
-import config from "../tutorialconfig.json"
+import config from "../config.json"
 import { switchJob } from './config';
 import experimentScenarios from "./bundle_experiment_50_rounds_short_times.json";
 
-const configModules = import.meta.glob("./tutorialconfigs/*.json");
+const configModules = import.meta.glob("./configs/*.json");
 
 // Get filenames (cleaned for display)
 export const configOptions = Object.keys(configModules).map(path => {
@@ -242,27 +242,6 @@ export const logBundledOrder = (order1, order2, options) => {
 	order2.options = optionslst
 	addOrder(get(id), order1, order1.id)
 	addOrder(get(id), order2, order2.id)
-}
-
-// New function to handle 1-3 orders flexibly
-export const logOrders = (selectedOrders, allOptions) => {
-	if (!needsAuth) {
-		return
-	}
-	const startTime = get(elapsed)
-	const optionslst = allOptions.map(o => o.id)
-	
-	selectedOrders.forEach((order, idx) => {
-		order.startgametime = startTime
-		order.status = 0
-		order.bundled = selectedOrders.length > 1
-		order.bundleSize = selectedOrders.length
-		if (order.bundled) {
-			order.bundledWith = selectedOrders.filter((_, i) => i !== idx).map(o => o.id)
-		}
-		order.options = optionslst
-		addOrder(get(id), order, order.id)
-	})
 }
 
 //state should contain info such as:

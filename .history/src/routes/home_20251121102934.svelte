@@ -105,12 +105,6 @@
     }
 
     onMount(() => {
-        // Set round start time for tracking
-        roundStartTime.set($elapsed);
-        
-        // Load scenario orders into orderList
-        orderList.set(scenarioOrders);
-        
         thinking = true;
         thinkRemaining = thinkTime;
 
@@ -154,7 +148,7 @@
 
         <div class="flex items-baseline justify-between">
             <h2 class="text-lg font-semibold text-slate-900">Available batches</h2>
-            <p class="text-xs text-slate-500">Round {$currentRound} • Select up to {maxBundle} {maxBundle === 1 ? 'order' : 'orders'}</p>
+            <p class="text-xs text-slate-500">Select one or two orders to work on</p>
         </div>
 
         <div class="mt-3 grid gap-4 md:grid-cols-2">
